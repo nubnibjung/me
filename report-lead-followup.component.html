@@ -1,0 +1,295 @@
+<div class="report-content-filter">
+	<div class="report-search" id="search">
+		<go5-search
+			[category]="'primary'"
+			[(ngModel)]="filter.search"
+			[placeholder]="'common_search' | sPhrase | async"
+			(ngModelChange)="onSearch('search', $event)"
+		>
+		</go5-search>
+	</div>
+
+	<div class="report-content-toolbar">
+		<go5-dropdown-filter
+			[dataSource]="dataSourceFilter"
+			[allowLocaliza]="true"
+			[value]="filter"
+			[maxWidth]="'150px'"
+			[category]="'primary'"
+			[mode]="'overflow-popup'"
+			[size]="'medium'"
+			[popupWidth_px]="276"
+			(changed)="onSelectedFilter($event)"
+			(clear)="onClearAll($event)"
+			(filtering)="onFiltering($event)"
+		>
+		</go5-dropdown-filter>
+	</div>
+
+	<div class="report-additional-filter">
+		<app-date-range
+			[reportType]="'lead-followup'"
+			(selected)="setFilter($event)"
+			[value]="dateRang"
+			[filterSize]="'medium'"
+			[maxWidth]="'240px'"
+			[category]="'primary'"
+		></app-date-range>
+	</div>
+
+	<!-- Export -->
+	<div class="other-tool">
+		<div class="vertical-line-toolbar"></div>
+		<div class="report-export">
+			<div *ngIf="btnExport" class="spinner-border spinner-border-sm text-success" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<button *ngIf="!btnExport && canExportReport" class="export-button" type="button">
+				<i (click)="exportData()" class="font24 icon-Excel-export pointer"></i>
+			</button>
+			<div *ngIf="typeExportFile" class="history-box">
+				<i
+					(click)="openHistoryLog()"
+					class="gf-icon-empeo-history"
+					data-testid="button_history_log"
+					go5-tooltip="History"
+					go5-tooltip-placement="bottom"
+				></i>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Summary  Report -->
+<app-summary-report [columns]="summaryColumm" [data]="summary" [loading]="loadingSummary"></app-summary-report>
+
+<div class="tb-report sales-order-report summary-header report-lead-followup-table">
+	<app-table-standard
+		[data]="Reportdata"
+		[columns]="columns"
+		[isLoading]="loading"
+		(sorted)="sortingBy($event)"
+		[stickyHeaderTop]="'0px'"
+	/>
+
+	<!-- <ng-container [ngTemplateOutletContext]="{ dataList: data, export: false }" [ngTemplateOutlet]="tbData">
+	</ng-container> -->
+</div>
+
+<app-attachment-modal #attachmentModal></app-attachment-modal>
+<ng-template #tbData let-data="dataList" let-export="export">
+	<!-- <div>
+		<go5-table #table class="table-content" [category]="'secondary'" [hasBorderRadius]="false" [stickyMode]="'sticky'">
+			<ng-template #headerTemplate>
+				<tr>
+					<ng-template [ngForOf]="columns" let-c let-i="index" ngFor>
+						<th
+							*ngIf="c.isActive"
+							class="go5-table-header-text"
+							[style.width]="c.width"
+							[ngStyle]="{ 'min-width': c.width }"
+						>
+							{{ c.columnName | phrase | async }}
+
+							<s-order-icon
+								*ngIf="c.orderable"
+								class="orderPadding"
+								[key]="c.orderKey[0]"
+								[orderBy]="c.sortType"
+								(change)="sortingBy($event, c)"
+							></s-order-icon>
+						</th>
+					</ng-template>
+				</tr>
+			</ng-template>
+
+			<ng-template #contentTemplate>
+				<tbody go5-table-body-content>
+					<ng-template [ngForOf]="data" let-i="index" let-item ngFor>
+						<tr go5-table-row>
+							<ng-template [ngForOf]="columns" let-c let-j="index" ngFor>
+								<ng-template [ngIf]="c.isActive">
+									<td go5-table-cell *ngIf="c.type === 'date'" [style.width]="c.width">
+										{{ (item[c.column] | sDate: DateFormat.dateTimeShort | async) || '-' }}
+									</td>
+									<td go5-table-cell *ngIf="c.type === 'dateConversation'" [style.width]="c.width">
+										{{ (item[c.column] | timeAgo: CurrentAppLanguage : true) || '-' }}
+									</td>
+									<td go5-table-cell *ngIf="c.type === 'dateFollowUp'" [style.width]="c.width">
+										{{ (item[c.column] | sDate: DateFormat.dateTimeFull | async) || '-' }}
+										<p *ngIf="item[description]" class="font12">{{ item[c.column] }}</p>
+									</td>
+									<td go5-table-cell *ngIf="c.type === 'string'" [style.width]="c.width">
+										{{ item[c.column] | default: 'str' }}
+									</td>
+
+									<td go5-table-cell *ngIf="c.type === 'leadState'" [style.width]="c.width">
+										{{ item[c.column] ? (getConversationActionKey(item[c.column]) | sPhrase | async) : '-' }}
+									</td>
+									<td go5-table-cell *ngIf="c.type === 'number'" [style.width]="c.width">
+										{{ item[c.column] || '-' }}
+									</td>
+									<td go5-table-cell *ngIf="c.type === 'id'" [style.width]="c.width">
+										{{ item[c.column] || '-' }}
+									</td>
+									<td go5-table-cell *ngIf="c.type === 'customerId'" [style.width]="c.width">
+										<button (click)="createConversation(item[c.column])" class="bt-action">
+											<i class="icon-Add-conversation font20"></i></button
+										>&nbsp;&nbsp;
+										<button (click)="createPlan(item[c.column])" class="bt-action">
+											<i class="icon-Add-Activity font20"></i>
+										</button>
+									</td>
+
+									<td
+										go5-table-cell
+										class=""
+										*ngIf="c.type === 'interested'"
+										[ngClass]="{
+											'column-interest': c.column
+										}"
+										[style.width]="c.width"
+									>
+										<p class="pl-0 weight-medium font11">
+											<span
+												*ngFor="let topic of item[c.keyName] || []"
+												class="label label-stt-primary disabled tag-ellipsis"
+												[go5-tooltip]="topic.topicName | sPhrase | async"
+												go5-tooltip-placement="top"
+												go5-tooltip-mode="hover"
+												>{{ topic.topicName | default: 'str' }}</span
+											>
+										</p>
+									</td>
+									<td go5-table-cell *ngIf="c.type === 'customer'" [style.width]="c.width">
+										<span
+											[hoverCard]="item.customerId"
+											[openClick]="true"
+											[type]="'customer'"
+											class="{{ item[c.column] ? 'text-link-primary' : '' }} inline"
+											>{{ item[c.column] | default: 'str' }}</span
+										>
+										&nbsp;
+										<button
+											(beforeItemRender)="itemBeforeEvent($event, item)"
+											(click)="showSocial(item)"
+											[items]="socialAccounts"
+											cssClass="e-caret-hide border-0"
+											ejs-dropdownbutton
+											iconCss="icon fa fa-ellipsis-h font10 pointer "
+										></button>
+									</td>
+									<td
+										go5-table-cell
+										*ngIf="c.type === 'customerType'"
+										class="{{ item[c.column] ? 'text-link-primary' : '' }}"
+										[style.width]="c.width"
+									>
+										{{ CustomerTypes[item[c.column]] | translate }}
+									</td>
+									<td go5-table-cell *ngIf="c.type === 'employee'" [style.width]="c.width">
+										<p *ngFor="let owner of item[c.keyName]; let i = index">
+											<span
+												[hoverCard]="owner.userId"
+												[openClick]="true"
+												class="{{ item[c.keyName] ? 'text-link-primary' : '' }} inline"
+												>{{ owner.firstname + ' ' + owner.lastname }}</span
+											>
+											<span *ngIf="i + 1 < item[c.keyName]?.length"> ,</span>
+										</p>
+									</td>
+								</ng-template>
+							</ng-template>
+						</tr>
+					</ng-template>
+
+					<ng-container *ngIf="loading || scrollLoading()">
+						<tr go5-table-row *ngFor="let data of counter(10)">
+							<ng-template ngFor [ngForOf]="columns" let-col>
+								<td go5-table-cell *ngIf="col.isActive" [ngClass]="col.cssClass" [ngStyle]="{ width: col.width }">
+									<ngx-skeleton-loader [theme]="{ margin: '0px' }"> </ngx-skeleton-loader>
+								</td>
+							</ng-template>
+						</tr>
+					</ng-container>
+				</tbody>
+			</ng-template>
+		</go5-table>
+	</div> -->
+
+	<!-- <ng-template [ngIf]="!export">
+		<div *ngIf="!loading && (data === null || data?.length === 0)">
+			<div class="emptyBlock emptyBlock-tab" style="height: 60vh"></div>
+		</div>
+	</ng-template> -->
+	
+</ng-template>
+
+<ng-template #ownerBody let-value let-column="column">
+  <td app-table-data-cell-user-participant style="width: 220px; min-width: 220px">
+    <div *ngIf="value.ownerInfo?.length > 0">
+      <app-avatar-group
+        [values]="value.ownerInfo"
+        [fields]="{ picture: 'pictureUrl', text: 'userFullname' }"
+        [avatarSize]="'36px'"
+        [fontSize]="'12px'"
+        [maximumAvatar]="4"
+      ></app-avatar-group>
+      <ng-container *ngIf="value.ownerInfo?.length > 4">
+      </ng-container>
+    </div>
+  </td>
+</ng-template>
+
+<ng-template #actionBody let-value let-column="column">
+	<td  style="width: 240px; min-width: 240px ; text-align: start;">
+		<button (click)="createConversation(value[column.id])" class="bt-action">
+			<i class="icon-Add-conversation font20"></i>
+		</button>
+		&nbsp;&nbsp;
+		<button (click)="createPlan(value[column.id])" class="bt-action">
+			<i class="icon-Add-Activity font20"></i>
+		</button>
+	</td>
+</ng-template>
+
+
+<ng-template #customBody let-value let-column="column">
+	<td style="width: 220px; min-width: 220px">
+		<span [hoverCard]="value.customerId" [openClick]="true" [type]="'customer'" class="{{ value[column.id] }} ">
+			{{ value[column.id] | default: 'str' }}
+		</span>
+		&nbsp;
+		<button
+			*ngIf="value.email || value.telephone || value.facebook || value.line"
+			(beforeItemRender)="itemBeforeEvent($event, value)"
+			(click)="showSocial(value)"
+			[items]="socialAccounts"
+			cssClass="e-caret-hide border-0"
+			ejs-dropdownbutton
+			iconCss="icon fa fa-ellipsis-h font10 pointer "
+		></button>
+	</td>
+</ng-template>
+
+<ng-template #dateConBody let-item let-c="column">
+	<td style="width: 190px; min-width: 190px">
+		{{ item.dateConversation | timeAgo: CurrentAppLanguage : true }}
+	</td>
+</ng-template>
+
+<ng-template #interestBody let-value>
+	<td style="width: 240px; min-width: 240px">
+	<app-table-data-cell-interests [values]="convertToInterestsCell(value.customerInterests)" />
+</td>
+</ng-template>
+
+<app-conversation-add #addConversation (createPlan)="onSubmitConversation($event)"></app-conversation-add>
+<app-plan-add #createPlanTab (activityId)="relateActivity($event)"></app-plan-add>
+<app-history-log #dialog></app-history-log>
+
+<ng-template>
+<div *ngIf="!loading && (data === null || data?.length === 0)">
+		<div class="emptyBlock emptyBlock-tab" style="height: 60vh"></div>
+	</div>
+	</ng-template>

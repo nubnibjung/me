@@ -1,0 +1,131 @@
+@import '../../../../../assets/scss/ScssVariable';
+
+img.img-social {
+	width: 45px;
+	height: 23px;
+	margin: inherit;
+	margin-right: -3px;
+}
+
+a:hover,
+a:focus,
+a:active {
+	color: $color-primary !important;
+	text-decoration: none;
+}
+
+.fa-ellipsis-h:before {
+	color: $silverChalice;
+	border-radius: 5px;
+}
+::ng-deep .interest-list {
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+    word-break: break-word;
+}
+
+::ng-deep .e-grid .e-headercell[data-field="customerInterests"],
+::ng-deep .e-grid .e-rowcell[data-field="customerInterests"] {
+    min-width: 120px !important;
+    max-width: 240px !important;
+    width: auto !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bt-action {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	border: transparent;
+	background-color: white;
+	box-shadow: 0px 3px 6px #00000029;
+	width: 28px;
+	height: 28px;
+}
+
+.e-btn.e-active,
+.e-btn:hover {
+	border-radius: 100%;
+	width: 20px;
+	height: 20px;
+	display: inline-grid;
+	align-items: center;
+	justify-content: center;
+}
+
+.e-dropdown-popup ul {
+	border: none;
+	border-radius: 8px;
+	box-shadow: 0px 3px 6px #00000029;
+}
+
+.e-dropdown-popup ul .e-item .e-menu-icon,
+.e-dropdown-popup ul .e-item .e-menu-url {
+	color: $color-primary;
+}
+
+#socialText::after {
+	content: attr(data-content);
+}
+
+th.go5-table-header-text,
+td.go5-table-cell {
+	white-space: normal !important;
+	word-wrap: break-word !important;
+}
+
+.orderPadding {
+	position: relative;
+	top: 3px;
+}
+
+.tag-ellipsis {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	max-width: 100%;
+}
+
+.profileUser {
+    .profile-header {
+        background: linear-gradient(340.31deg, #116DFC 13.18%, #3B9FFD 86.82%);
+        border-radius: 6px 6px 0px 0px;
+        padding: 24px 0px 44px;
+        height: 64px;
+        display: flex;
+        justify-content: center;
+
+        .profile-img {
+            border-radius: 50%;
+            border: 6px #ffffff;
+            background-color: #ffffff;
+        }
+    }
+
+}
+.close-scrollbar:has(app-table-standard)::-webkit-scrollbar-thumb {
+	background-color: #dfdfe8 !important;
+	border-radius: 10px !important;
+}
+
+.close-scrollbar:has(app-table-standard)::-webkit-scrollbar {
+	display: unset;
+	width: 6px;
+	background-color: white;
+}
+
+.contentRight {
+	overflow: visible !important;
+}
+
+
+.close-scrollbar:has(app-table-standard)::-webkit-scrollbar-thumb:hover {
+	background-color: #bcbcc8 !important;
+}
+
+.report-lead-followup-table {
+	height: auto !important;
+}
