@@ -14,10 +14,12 @@
 			[dataSource]="dataSourceFilter"
 			[allowLocaliza]="true"
 			[value]="filter"
+			multiSelect="true"
 			[maxWidth]="'150px'"
 			[category]="'primary'"
 			[mode]="'overflow-popup'"
 			[size]="'medium'"
+			(select)="onSelectedFilter($event)"
 			[popupWidth_px]="276"
 			(changed)="onSelectedFilter($event)"
 			(clear)="onClearAll($event)"
@@ -66,7 +68,7 @@
 <div class="tb-report sales-order-report summary-header report-lead-followup-table">
 	<app-table-standard
 		[data]="Reportdata"
-		[columns]="columns"
+		[columns]="filteredColumns"
 		[isLoading]="loading"
 		(sorted)="sortingBy($event)"
 		[stickyHeaderTop]="'0px'"
@@ -222,27 +224,25 @@
 			<div class="emptyBlock emptyBlock-tab" style="height: 60vh"></div>
 		</div>
 	</ng-template> -->
-	
 </ng-template>
 
 <ng-template #ownerBody let-value let-column="column">
-  <td app-table-data-cell-user-participant style="width: 220px; min-width: 220px">
-    <div *ngIf="value.ownerInfo?.length > 0">
-      <app-avatar-group
-        [values]="value.ownerInfo"
-        [fields]="{ picture: 'pictureUrl', text: 'userFullname' }"
-        [avatarSize]="'36px'"
-        [fontSize]="'12px'"
-        [maximumAvatar]="4"
-      ></app-avatar-group>
-      <ng-container *ngIf="value.ownerInfo?.length > 4">
-      </ng-container>
-    </div>
-  </td>
+	<td app-table-data-cell-user-participant style="width: 220px; min-width: 220px">
+		<div *ngIf="value.ownerInfo?.length > 0">
+			<app-avatar-group
+				[values]="value.ownerInfo"
+				[fields]="{ picture: 'pictureUrl', text: 'userFullname' }"
+				[avatarSize]="'36px'"
+				[fontSize]="'12px'"
+				[maximumAvatar]="4"
+			></app-avatar-group>
+			<ng-container *ngIf="value.ownerInfo?.length > 4"> </ng-container>
+		</div>
+	</td>
 </ng-template>
 
 <ng-template #actionBody let-value let-column="column">
-	<td  style="width: 240px; min-width: 240px ; text-align: start;">
+	<td style="width: 240px; min-width: 240px; text-align: start">
 		<button (click)="createConversation(value[column.id])" class="bt-action">
 			<i class="icon-Add-conversation font20"></i>
 		</button>
@@ -252,7 +252,6 @@
 		</button>
 	</td>
 </ng-template>
-
 
 <ng-template #customBody let-value let-column="column">
 	<td style="width: 220px; min-width: 220px">
@@ -280,16 +279,20 @@
 
 <ng-template #interestBody let-value>
 	<td style="width: 240px; min-width: 240px">
-	<app-table-data-cell-interests [values]="convertToInterestsCell(value.customerInterests)" />
-</td>
+		<app-table-data-cell-interests [values]="convertToInterestsCell(value.customerInterests)" />
+	</td>
 </ng-template>
-
+<ng-template #leadBody let-value>
+  <td style="width: 180px; min-width: 180px">
+    {{ value.leadStatus }}
+  </td>
+</ng-template>
 <app-conversation-add #addConversation (createPlan)="onSubmitConversation($event)"></app-conversation-add>
 <app-plan-add #createPlanTab (activityId)="relateActivity($event)"></app-plan-add>
 <app-history-log #dialog></app-history-log>
 
 <ng-template>
-<div *ngIf="!loading && (data === null || data?.length === 0)">
+	<div *ngIf="!loading && (data === null || data?.length === 0)">
 		<div class="emptyBlock emptyBlock-tab" style="height: 60vh"></div>
 	</div>
-	</ng-template>
+</ng-template>

@@ -1,6 +1,9 @@
 import { User } from './../../../../shared/models/social-chat.model'
 import { IReportColumn } from './../../../../shared/interfaces/report/report-column.interface'
 import * as xlsx from 'xlsx'
+
+import { AvatarSize } from '@gofive/design-system-avatar'
+
 import { ITableDataCellInterests } from '@venio/shared/interfaces/table-data-cell-interests.interface'
 import {
 	ChangeDetectorRef,
@@ -77,17 +80,17 @@ import {
 } from '@gofive/design-system-table'
 import { GoogleTagManagerService } from 'angular-google-tag-manager'
 import { InformationProfile } from '@venio/modules/home/shared/home.model'
-import { ids } from 'webpack'
 
 @Component({
 	selector: 'app-report-lead-followup',
 	templateUrl: './report-lead-followup.component.html',
 	styleUrls: ['./report-lead-followup.component.scss'],
-	encapsulation: ViewEncapsulation.None
+	encapsulation: ViewEncapsulation.None,
 })
 export class ReportLeadFollowupComponent implements OnInit, OnDestroy, AfterViewInit {
 	private readonly reportPDFService = inject(ReportPDFService)
 	public currentUser: vwUserInfo = new vwUserInfo()
+	public filteredColumns: Go5TableStandardColumn[] = []
 	public canExportReport: boolean = false
 	public data: InformationProfile
 	public Reportdata: any[] = []
@@ -98,7 +101,7 @@ export class ReportLeadFollowupComponent implements OnInit, OnDestroy, AfterView
 	public columnsFields: FieldSettingsModel = { text: 'columnName', value: 'columnId' }
 	public dataExport: Object[] = []
 	@Input() currentUser$: Observable<vwUserInfo>
-	
+
 	private previousAvatarUrl: string
 
 	private readonly interestBody = viewChild<TemplateRef<HTMLTableCellElement>>('interestBody')
@@ -106,9 +109,10 @@ export class ReportLeadFollowupComponent implements OnInit, OnDestroy, AfterView
 	private readonly ownerBody = viewChild<TemplateRef<HTMLTableCellElement>>('ownerBody')
 	private readonly dateConBody = viewChild<TemplateRef<HTMLTableCellElement>>('dateConBody')
 	private readonly actionBody = viewChild<TemplateRef<HTMLTableCellElement>>('actionBody')
+	private readonly leadBody = viewChild<TemplateRef<HTMLTableCellElement>>('leadBody')
 
 	@Input() values!: ITableDataCellInterests[]
-	public allColumns: Go5TableStandardColumn[] = []
+
 	public columns: Go5TableStandardColumn[] = []
 	ngAfterViewInit(): void {
 		this.columns = [
@@ -122,7 +126,59 @@ export class ReportLeadFollowupComponent implements OnInit, OnDestroy, AfterView
 				},
 				sortable: true,
 				type: Go5TableStandardColumnType.Custom,
-				bodyTemplate: this.customBody()
+				bodyTemplate: this.customBody(),
+				isActive: true
+			},
+			{
+				id: 'customerCode',
+				width: '180px',
+				minWidth: '180px',
+				header: {
+					text: 'common_report_customer_code',
+					align: 'start'
+				},
+				type: Go5TableStandardColumnType.Text,
+				isActive: false,
+				topic: { fieldName: 'customerCode' }
+			},
+			{
+				id: 'aliasName',
+				width: '180px',
+				minWidth: '180px',
+				header: {
+					text: 'common_customer_alias_name',
+					align: 'start'
+				},
+				type: Go5TableStandardColumnType.Text,
+				sortable: true,
+				isActive: false,
+				topic: { fieldName: 'aliasName' }
+			},
+			{
+				id: 'customerTypeName',
+				width: '180px',
+				minWidth: '180px',
+				header: {
+					text: 'common_customer_customer_state',
+					align: 'start'
+				},
+				type: Go5TableStandardColumnType.Text,
+				isActive: false,
+				sortable: true,
+				topic: { fieldName: 'customerTypeName' }
+			},
+			{
+				id: 'typeName',
+				width: '180px',
+				minWidth: '180px',
+				header: {
+					text: 'common_customer_customer_type',
+					align: 'start'
+				},
+				type: Go5TableStandardColumnType.Text,
+				isActive: false,
+				sortable: true,
+				topic: { fieldName: 'typeName' }
 			},
 			{
 				id: 'userFullname',
@@ -132,9 +188,9 @@ export class ReportLeadFollowupComponent implements OnInit, OnDestroy, AfterView
 					text: 'common_customer_owner',
 					align: 'start'
 				},
-				sortable: true,
 				type: Go5TableStandardColumnType.Custom,
-			 bodyTemplate: this.ownerBody()
+				bodyTemplate: this.ownerBody(),
+				isActive: true
 			},
 
 			{
@@ -146,7 +202,8 @@ export class ReportLeadFollowupComponent implements OnInit, OnDestroy, AfterView
 					align: 'start'
 				},
 				type: Go5TableStandardColumnType.Custom,
-				bodyTemplate: this.interestBody()
+				bodyTemplate: this.interestBody(),
+				isActive: true
 			},
 			{
 				id: 'sourceOfLeadName',
@@ -156,9 +213,22 @@ export class ReportLeadFollowupComponent implements OnInit, OnDestroy, AfterView
 					text: 'common_customer_source_of_lead',
 					align: 'start'
 				},
-				sortable: true,
 				type: Go5TableStandardColumnType.Text,
-				topic: { fieldName: 'sourceOfLeadName' }
+				topic: { fieldName: 'sourceOfLeadName' },
+				isActive: true
+			},
+			{
+				id: 'leadStatus',
+				width: '180px',
+				minWidth: '180px',
+				header: {
+					text: 'common_customer_leadstates',
+					align: 'start'
+				},
+				type: Go5TableStandardColumnType.Custom,
+				isActive: false,
+				sortable: true,
+				bodyTemplate: this.leadBody()
 			},
 			{
 				id: 'dateCreatedCustomer',
@@ -170,7 +240,8 @@ export class ReportLeadFollowupComponent implements OnInit, OnDestroy, AfterView
 				},
 				sortable: true,
 				type: Go5TableStandardColumnType.Text,
-				topic: { fieldName: 'dateCreatedCustomer' }
+				topic: { fieldName: 'dateCreatedCustomer' },
+				isActive: true
 			},
 			{
 				id: 'dateConversation',
@@ -182,7 +253,8 @@ export class ReportLeadFollowupComponent implements OnInit, OnDestroy, AfterView
 				},
 				sortable: true,
 				type: Go5TableStandardColumnType.Custom,
-				bodyTemplate: this.dateConBody()
+				bodyTemplate: this.dateConBody(),
+				isActive: true
 			},
 			{
 				id: 'dateFollowUp',
@@ -194,7 +266,34 @@ export class ReportLeadFollowupComponent implements OnInit, OnDestroy, AfterView
 				},
 				sortable: true,
 				type: Go5TableStandardColumnType.Text,
-				topic: { fieldName: 'dateFollowUp' }
+				topic: { fieldName: 'dateFollowUp' },
+				isActive: true
+			},
+			{
+				id: 'customerGroupName',
+				width: '180px',
+				minWidth: '180px',
+				header: {
+					text: 'common_customer_group',
+					align: 'start'
+				},
+				type: Go5TableStandardColumnType.Text,
+				isActive: false,
+				sortable: true,
+				topic: { fieldName: 'customerGroupName' }
+			},
+			{
+				id: 'customerClassificationName',
+				width: '180px',
+				minWidth: '180px',
+				header: {
+					text: 'common_customer_classification',
+					align: 'start'
+				},
+				type: Go5TableStandardColumnType.Text,
+				isActive: false,
+				sortable: true,
+				topic: { fieldName: 'customerClassificationName' }
 			},
 
 			{
@@ -207,31 +306,36 @@ export class ReportLeadFollowupComponent implements OnInit, OnDestroy, AfterView
 				},
 				sortable: true,
 				type: Go5TableStandardColumnType.Custom,
-				bodyTemplate: this.actionBody()
+				bodyTemplate: this.actionBody(),
+				isActive: true
 			}
 		]
-		if (this.filter?.column?.length) {
-  this.setActiveColumns(this.filter.column);
-} else {
-  this.setDefaultColumn();
-}
-		this.allColumns = [...this.columns];
-			const mappedColumns = this.columns.map((col) => ({
-  columnId: col.id,
-  columnName: col.header?.text
-}));
-this.setDataSourceFilter('column', mappedColumns);
-this.columnsFields = { text: 'columnName', value: 'columnId' };
+		if (!this.columns || this.columns.length === 0) {
+			console.error('Columns not initialized')
+			return
+		}
 
-// ถ้ายังไม่มี filter column -> set default column เป็นทั้งหมด
-if (!this.filter.column || this.filter.column.length === 0) {
-  this.filter.column = this.columns.map(col => col.id as any); 
-}
-		if (this.columns?.length > 0 && (!this.Reportdata || this.Reportdata.length === 0) && !this.loading) {
+		this.columns = this.columns.map((col, idx) => ({
+			...col,
+			isActive: col.isActive ?? true,
+			columnId: idx + 1
+		}))
+
+		this.filter.column = this.columns.filter((col) => col.isActive).map((col) => col['columnId'])
+		this.setActiveColumns(this.filter.column)
+
+		this.dataSourceFilter[0].dataSource = this.columns.map((col) => ({
+			columnName: col.header.text,
+			columnId: col['columnId']
+		}))
+
+		this.updateFilteredColumns()
+
+		if (this.columns.length > 0 && !this.loading) {
 			this.getData()
+			this._cdr.detectChanges()
 		}
 	}
-
 	sendMixPanelEvent(eventKey: string) {
 		this._gtmService.pushTag({ event: eventKey })
 	}
@@ -322,7 +426,7 @@ if (!this.filter.column || this.filter.column.length === 0) {
 			value: 'column',
 			allowFiltering: false,
 			fields: this.columnsFields,
-			dataSource: this.allColumns.map(col => ({ columnId: col.id, columnName: col.header?.text }))
+			dataSource: []
 		},
 		{
 			text: 'common_customer_source_of_lead',
@@ -388,7 +492,6 @@ if (!this.filter.column || this.filter.column.length === 0) {
 		public languageService: LanguageService,
 		public _cdr: ChangeDetectorRef,
 		private cdr: ChangeDetectorRef
-
 	) {
 		this.currentUser = DependenciesInjector.getCurrentUser()
 		if (this.currentUser) {
@@ -405,6 +508,7 @@ if (!this.filter.column || this.filter.column.length === 0) {
 			}
 			this.scrollHeight = 0
 			this.reloadData()
+			this._cdr.detectChanges()
 		})
 	}
 
@@ -479,14 +583,18 @@ if (!this.filter.column || this.filter.column.length === 0) {
 		this.getTeamsList()
 		this.getStaffList()
 		this.loadSetting()
-		
+
 		this.customers = await this.getCustomersList()
 		this.contentScrollElement = document.querySelector('.dashboard-report-page .content')
 		if (this.contentScrollElement) {
 			this.onScroll = this.onScroll.bind(this)
 			this.contentScrollElement.addEventListener('scroll', this.onScroll)
 		}
-
+		this.columns = this.columns.map((col, idx) => ({
+			...col,
+			isActive: col.isActive ?? true,
+			columnId: idx + 1
+		}))
 		this.searchSubject
 			.pipe(
 				takeUntil(this.destroy$),
@@ -552,88 +660,72 @@ if (!this.filter.column || this.filter.column.length === 0) {
 		)
 	}
 
-getData(pageLength = 40) {
-  this.loading = true;
-  this.Reportdata = [];
-  this.filter.start = this.Reportdata?.length || 0;
-  this.filter.pageLength = pageLength;
+	getData(pageLength = 40) {
+		this.loading = true
+		this.Reportdata = []
+		this.filter.start = this.Reportdata?.length || 0
+		this.filter.pageLength = pageLength
+		this.dataSubscription$?.unsubscribe()
+		this.dataSubscription$ = this.reportService.LeadFollowupReport(this.filter).subscribe(
+			(res) => {
+				console.log('API raw result:', res)
+				this.updateFilteredColumns()
+				const mappedData = res.map((item) => {
+					const userFullname = item.userFullname ? item.userFullname.split(',').map((name) => name.trim()) : []
+					const pictureUrl = item.ownerInfo?.map((o) => o?.pictureUrl) || []
 
-  // Unsubscribe previous subscription
-  this.dataSubscription$?.unsubscribe();
-  
-  // Make the API call
-  this.dataSubscription$ = this.reportService.LeadFollowupReport(this.filter).subscribe(
-    (res) => {
-      console.log('API raw result:', res);
+					const ownerInfoMapped = item.ownerInfo?.slice(0, 4).map((o) => ({
+						pictureUrl: o?.pictureUrl ?? '',
+						userFullname: o?.userFullname ?? ''
+					}))
 
-      // Map the response data
-      const mappedData = res.map((item) => {
-        
-		const userFullname = item.userFullname
-          ? item.userFullname.split(',').map(name => name.trim()) // แยก string ที่คั่นด้วย comma
-          : [];
-        const pictureUrl = item.ownerInfo?.map(o => o?.pictureUrl) || [];
+					if (item.ownerInfo?.length > 4) {
+						const remainingCount = item.ownerInfo.length - 4
+						ownerInfoMapped.push({
+							userFullname: `+${remainingCount}`,
+							pictureUrl: 'your_placeholder_image_url'
+						})
+					}
 
-		const ownerInfoMapped = item.ownerInfo?.slice(0, 4).map(o => ({
-          pictureUrl: o?.pictureUrl ?? '',
-          userFullname: o?.userFullname ?? ''
-        }));
-
-        // Check if there are more than 4 owners and add the count for the remaining ones
-        if (item.ownerInfo?.length > 4) {
-          const remainingCount = item.ownerInfo.length - 4;
-          ownerInfoMapped.push({
-            userFullname: `+${remainingCount}`,
-            pictureUrl: 'your_placeholder_image_url'  // Set a placeholder image
-          });
-        }
-
-        return {
-          customerName: item.customerName,
-          userFullname: item.userFullname,
-          ownerInfo: ownerInfoMapped,
-		//   userFullname: userFullname, // เก็บ userFullname เป็น array
-        //   pictureUrl: pictureUrl, // เก็บ pictureUrl เป็น array
-          customerInterests: item.customerInterests?.map((i) => i.topicName),
-          customerId: item.customerId,
-          telephone: item.telephone,
-          UserPictureUrl: item.UserPictureUrl,
-          positionName: item.positionName,
-          userId: item.userId,
-          email: item.email,
-          sourceOfLeadName: item.sourceOfLeadName,
-          dateCreatedCustomer: item.dateCreatedCustomer
-            ? this.datePipe.transform(item.dateCreatedCustomer, 'dd/MM/yyyy HH:mm')
-            : '',
-          dateConversation: item.dateConversation ? item.dateConversation : '',
-          dateFollowUp: item.dateFollowUp
-            ? this.datePipe.transform(item.dateFollowUp, 'EEE, dd MMMM yyyy HH:mm', undefined, 'en-US')
-            : '',
-          dateLatestPlanned: item.dateLatestPlanned
-            ? this.datePipe.transform(item.dateLatestPlanned, 'EEE, dd MMMM yyyy HH:mm', undefined, 'en-US')
-            : ''
-        };
-      });
-
-      console.log('Mapped Data:', mappedData);
-
-      // Concatenate new data to the existing data
-      this.Reportdata = this.Reportdata.concat(mappedData);
-      this.loading = false;
-      this.scrollLoading.set(false);
-      this.dataSubscription$?.unsubscribe();
-      this.dataSubscription$ = null;
-      this._cdr.detectChanges();
-    },
-    (err) => {
-      this.Reportdata = [];
-      this.loading = false;
-      this.scrollLoading.set(false);
-      this._cdr.detectChanges();
-    }
-  );
-}
-
+					return {
+						customerName: item.customerName,
+						userFullname: item.userFullname,
+						ownerInfo: ownerInfoMapped,
+						customerInterests: item.customerInterests?.map((i) => i.topicName),
+						customerId: item.customerId,
+						telephone: item.telephone,
+						UserPictureUrl: item.UserPictureUrl,
+						positionName: item.positionName,
+						userId: item.userId,
+						email: item.email,
+						sourceOfLeadName: item.sourceOfLeadName,
+						dateCreatedCustomer: item.dateCreatedCustomer
+							? this.datePipe.transform(item.dateCreatedCustomer, 'dd/MM/yyyy HH:mm')
+							: '',
+						dateConversation: item.dateConversation ? item.dateConversation : '',
+						dateFollowUp: item.dateFollowUp
+							? this.datePipe.transform(item.dateFollowUp, 'EEE, dd MMMM yyyy HH:mm', undefined, 'en-US')
+							: '',
+						dateLatestPlanned: item.dateLatestPlanned
+							? this.datePipe.transform(item.dateLatestPlanned, 'EEE, dd MMMM yyyy HH:mm', undefined, 'en-US')
+							: ''
+					}
+				})
+				this.Reportdata = this.Reportdata.concat(mappedData)
+				this.loading = false
+				this.scrollLoading.set(false)
+				this.dataSubscription$?.unsubscribe()
+				this.dataSubscription$ = null
+				this._cdr.detectChanges()
+			},
+			(err) => {
+				this.Reportdata = []
+				this.loading = false
+				this.scrollLoading.set(false)
+				this._cdr.detectChanges()
+			}
+		)
+	}
 
 	public itemBeforeEvent(args: MenuEventArgs, item) {
 		if (args.item.id === 'telephone' || args.item.id === 'email') {
@@ -655,7 +747,7 @@ getData(pageLength = 40) {
 
 	async showSocial(item) {
 		this.socialAccounts = this.socialMediaData
-			.filter((s) => item[s.key]) // Ensure there's a corresponding item value
+			.filter((s) => item[s.key])
 			.map((s) => {
 				const baseTexts = {
 					telephone: 'Call: ',
@@ -698,67 +790,34 @@ getData(pageLength = 40) {
 		this.filter[key] = value?.length > 0 ? value : null
 		this.filterSharingService.setFilterLeadFollowupReport(this.filter)
 	}
-	
-private preferredOrder: string[] = [
-  'customerName',
-  'userFullname',
-  'customerInterests',
-  'sourceOfLeadName',
-  'dateCreatedCustomer',
-  'dateConversation',
-  'dateFollowUp'
-];
-public onSelectedFilter(event: DropdownEventArgs) {
-  const type: string = event?.data?.value;
 
-  if (type === 'column') {
-    const selectedItems = event?.selectedItems ?? event?.value ?? [];
-    const selectedIds = selectedItems.map(item => {
-      return typeof item === 'object' && 'columnId' in item
-        ? item.columnId.toString()
-        : item.toString();
-    });
-
-    console.log('Selected IDs:', selectedIds);
-
-    // ✅ ใช้ preferredOrder เพื่อเรียงเฉพาะที่ผู้ใช้เลือกไว้
-    const finalSortedIds = this.preferredOrder.filter(preferredId =>
-      selectedIds.includes(preferredId)
-    );
-
-    this.columns = finalSortedIds.map(id =>
-      this.allColumns.find(col => col.id.toString() === id)
-    ).filter(Boolean);
-
-    console.log('Final columns:', this.columns.map(col => col?.id));
-
-    this.filter.column = selectedIds;
-    this.filterSharingService.setFilterLeadFollowupReport(this.filter);
-
-    this.Reportdata = [];
-    this.getData();
-    return;
-  }
-
-  if (type === 'teamIds') {
-    this.filter.userIds = [];
-    this.getStaffList(this.filter.teamIds?.length ? this.filter.teamIds : null);
-  }
-
-  const ids = [...new Set(event?.value)];
-  this.filter[type] = ids;
-  this.filterSharingService.setFilterLeadFollowupReport(this.filter);
-}
-
-
+	public onSelectedFilter(event: DropdownEventArgs) {
+		const type: string = event?.data?.value
+		const columnIds: number[] = event?.value || []
+		console.log('Selected Column IDs:', columnIds)
+		this.filter[type] = columnIds.length > 0 ? columnIds : null
+		if (type === 'column') {
+			const selectedItems = event?.selectedItems ?? []
+			let ids = selectedItems.length === 0 ? [] : [...new Set(selectedItems.map((item) => item.columnId))]
+			this.filter.column = ids
+			this.setActiveColumns(ids)
+			this.updateFilteredColumns()
+			this.reloadData()
+			return
+		}
+		if (type === 'teamIds') {
+			this.filter.userIds = []
+			this.getStaffList(this.filter.teamIds?.length ? this.filter.teamIds : null)
+		}
+		this.filterSharingService.setFilterLeadFollowupReport(this.filter)
+		this._cdr.detectChanges()
+	}
 	public openCustomer(id: number) {
 		this.app.openCustomerURL(id)
 	}
-
 	public openEmp(userId: string) {
 		this.router.navigateByUrl('/employee/' + userId)
 	}
-
 	public onSelectedTeams(e) {
 		this.filter.teamIds = e?.length > 0 ? e : null
 		this.getStaffList(this.filter.teamIds)
@@ -779,22 +838,27 @@ public onSelectedFilter(event: DropdownEventArgs) {
 		}
 	}
 
-	// public sortingBy(event, col: ColumnModel) {
-	// 	if (col.orderable) {
-	// 		this.columns?.forEach((column) => {
-	// 			if (column.column === col.column) {
-	// 				column['sortType'] = event.orderBy || 'asc'
-	// 			} else {
-	// 				column['sortType'] = null
-	// 			}
-	// 			return column
-	// 		})
+	public sortingBy(event: IGo5TableStandardSortEvent) {
+		const col = this.columns.find((c) => c.id === event.id)
+		const targetColumnId = col ? col['columnId'] : null
+		let newSortOrder = event.sortOrder
+		if (col && col['sortType']) {
+			newSortOrder = col['sortType'] === 'asc' ? 'desc' : 'asc'
+		} else {
+			newSortOrder = 'asc'
+		}
 
-	// 		this.filter.orderBy = `${event.key} ${event.orderBy?.toLowerCase() || 'asc'}`
-	// 		this.reloadData()
-	// 	}
-	// }
-	
+		this.columns?.forEach((column) => {
+			if (column['columnId'] === targetColumnId) {
+				column['sortType'] = newSortOrder
+			} else {
+				column['sortType'] = null
+			}
+		})
+
+		this.filter.orderBy = `${event.id} ${newSortOrder}`
+		this.reloadData()
+	}
 
 	public getInterested() {
 		this.customerService
@@ -850,14 +914,13 @@ public onSelectedFilter(event: DropdownEventArgs) {
 	public async exportData() {
 		this.btnExport = true
 
-	const exportColumns: IReportColumn[] = this.filter.column.map(colId => {
-	const col = this.allColumns.find(c => c.id.toString() === colId.toString());
-	return {
-		column: colId.toString(),
-		columnName: col?.header?.text ?? '',
-		isActive: true
-	};
-});
+		const exportColumns: IReportColumn[] = this.columns
+			.filter((s) => s.id !== 'customerId')
+			.map((s) => ({
+				column: s.id,
+				columnName: s.header?.text ?? '',
+				isActive: true
+			}))
 
 		let objectExport = null
 		this.reportPDFService.exportReport(exportColumns).then((val) => {
@@ -974,39 +1037,56 @@ public onSelectedFilter(event: DropdownEventArgs) {
 	}
 
 	public setDefaultColumn() {
-  if (this.firstSettingColumn) {
-	this.filter.column = this.columns.map(col => Number(col.id)); // default: ทุก column
-    this.setActiveColumns(this.filter.column);
-    this.setDataSourceFilter('column', this.columns);
-  }
+		if (this.firstSettingColumn) {
+			this.columns = this.columns.map((col, index) => ({
+				...col,
+				columnId: index + 1
+			}))
+			this.defaultColumns = this.columns.filter((c) => c.isActive).map((col) => col['columnId'])
+			this.filter.column = this.defaultColumns
+			this.setDataSourceFilter('column', this.columns)
+			this.firstSettingColumn = false
+		}
+		this.setActiveColumns(this.filter.column)
+		this._cdr.detectChanges()
+	}
+	public onSelectedColumn(value: string[]) {
+		this.columns.forEach((s) => (s.isActive = value.includes(s['columnId'])))
+	}
 
-  if (this.filter?.column?.length) {
-    this.setActiveColumns(this.filter?.column);
-  }
+	public setActiveColumns(columnIds = []) {
+		this.columns = this.columns.map((col) => {
+			if (columnIds.length === 0) {
+				return { ...col, isActive: col.isActive ?? true }
+			}
+			return { ...col, isActive: columnIds.includes(col['columnId']) }
+		})
 
-  this.firstSettingColumn = false;
-}
+		this.filter.column = columnIds.length > 0 ? columnIds : []
+		this.updateFilteredColumns()
+		this._cdr.detectChanges()
+	}
 
-setActiveColumns(columnsIds: (string | number)[] = []) {
-	const ids = columnsIds.map(id => id.toString());
-
-	this.columns = ids.map(id =>
-		this.allColumns.find(col => col.id.toString() === id)
-	).filter(Boolean);
-}
 	public onClearAll(event) {
-  this.setActiveColumns([]); // ล้าง columns
-  this.columns = []; // ให้ table หายไปทั้งหมด
+		this.dataSourceFilter.forEach((filter) => {
+			const key = filter.value
+			this.filter[key] = key === 'column' ? [] : null
+		})
 
-  this.dataSourceFilter.forEach((filter) => {
-    const key = filter.value;
-    this.filter[key] = [];
-  });
+		this.filter.column = []
+		this.setActiveColumns([])
+		this.updateFilteredColumns()
 
-  this.getDataSummary();
-  this.getData();
-}
+		this.Reportdata = []
+		if (this.dataSubscription$) {
+			this.dataSubscription$.unsubscribe()
+			this.dataSubscription$ = null
+		}
 
+		this.filterSharingService.setFilterLeadFollowupReport(this.filter)
+		this.getDataSummary()
+		this._cdr.detectChanges()
+	}
 	public openHistoryLog() {
 		this.dialog?.openDialog(this.typeExportFile)
 	}
@@ -1064,8 +1144,6 @@ setActiveColumns(columnsIds: (string | number)[] = []) {
 		}
 	}
 	convertToInterestsCell(value: string[]): ITableDataCellInterests[] {
-		
-
 		if (!Array.isArray(value)) {
 			return []
 		}
@@ -1075,50 +1153,36 @@ setActiveColumns(columnsIds: (string | number)[] = []) {
 				topicName: interest
 			}
 		})
-		
+
 		return result
 	}
-convertToOwnerInfoCell(ownerInfo: any[]): { pictureUrl: string, userFullname: string }[] {
-  if (!Array.isArray(ownerInfo)) {
-    return [];
-  }
-
-  const result = ownerInfo.slice(0, 4).map(o => ({
-    pictureUrl: o?.pictureUrl ?? '',
-    userFullname: o?.userFullname ?? ''
-  }));
-
-  if (ownerInfo.length > 4) {
-    const remainingCount = ownerInfo.length - 4;
-
-    result.push({
-      userFullname: `+${remainingCount}`,  
-      pictureUrl: '',                     
-                         
-    });
-  }
-
-  return result;
-}
-private getSortField(id: string): string {
-		const map = {
-			customerName: 'customerName',
-			userFullname: 'userFullname',
-			customerInterests: 'customerInterests',
-			sourceOfLeadName: 'sourceOfLeadName',
-			dateCreatedCustomer: 'dateCreatedCustomer',
-			dateConversation: 'dateConversation',
-			dateFollowUp: 'dateFollowUp'
+	convertToOwnerInfoCell(ownerInfo: any[]): { pictureUrl: string; userFullname: string }[] {
+		if (!Array.isArray(ownerInfo)) {
+			return []
 		}
-		return map[id] || id
-	}
 
-	sortingBy(event: IGo5TableStandardSortEvent) {
-		const sortField = this.getSortField(event.id)
-		this.filter.orderBy = `${sortField} ${event.sortOrder}`
-		this.Reportdata = []
-		this.filter.start = 0
-		this.filterSharingService.setFilterLeadFollowupReport(this.filter)
-		this.getData()
+		const result = ownerInfo.slice(0, 4).map((o) => ({
+			pictureUrl: o?.pictureUrl ?? '',
+			userFullname: o?.userFullname ?? ''
+		}))
+
+		if (ownerInfo.length > 4) {
+			const remainingCount = ownerInfo.length - 4
+
+			result.push({
+				userFullname: `+${remainingCount}`,
+				pictureUrl: ''
+			})
+		}
+
+		return result
+	}
+	private updateFilteredColumns() {
+		if (this.filter.column?.length) {
+			this.filteredColumns = this.columns.filter((col) => this.filter.column.includes(col['columnId']))
+		} else {
+			this.filteredColumns = []
+		}
+		this._cdr.detectChanges()
 	}
 }

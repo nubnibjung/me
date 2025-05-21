@@ -18,6 +18,81 @@ a:active {
 	color: $silverChalice;
 	border-radius: 5px;
 }
+
+.bt-action {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	border: transparent;
+	background-color: white;
+	box-shadow: 0px 3px 6px #00000029;
+	width: 28px;
+	height: 28px;
+}
+
+.e-btn.e-active,
+.e-btn:hover {
+	border-radius: 100%;
+	width: 20px;
+	height: 20px;
+	display: inline-grid;
+	align-items: center;
+	justify-content: center;
+}
+
+.e-dropdown-popup ul {
+	border: none;
+	border-radius: 8px;
+	box-shadow: 0px 3px 6px #00000029;
+}
+
+.e-dropdown-popup ul .e-item .e-menu-icon,
+.e-dropdown-popup ul .e-item .e-menu-url {
+	color: $color-primary;
+}
+
+#socialText::after {
+	content: attr(data-content);
+}
+
+th.go5-table-header-text,
+td.go5-table-cell {
+	white-space: normal !important;
+	word-wrap: break-word !important;
+}
+
+.orderPadding {
+	position: relative;
+	top: 3px;
+}
+
+.tag-ellipsis {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	max-width: 100%;
+}
+@import '../../../../../assets/scss/ScssVariable';
+
+img.img-social {
+	width: 45px;
+	height: 23px;
+	margin: inherit;
+	margin-right: -3px;
+}
+
+a:hover,
+a:focus,
+a:active {
+	color: $color-primary !important;
+	text-decoration: none;
+}
+
+.fa-ellipsis-h:before {
+	color: $silverChalice;
+	border-radius: 5px;
+}
 ::ng-deep .interest-list {
     white-space: normal;
     overflow: hidden;
