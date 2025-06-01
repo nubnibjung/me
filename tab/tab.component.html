@@ -1,0 +1,127 @@
+<div class="go5-tabs-view-container">
+	<div class="go5-tabs-view">
+		<div class="go5-tabs-view-wrapper">
+			<div
+				#headerElement
+				tabScroll
+				[class]="'go5-tab-header-wrapper' + (themeLight ? ' bg-transparent' : '') + (' go5-tab-header-' + category)"
+				[ngClass]="{ 'go5-tab-header-scroll-able': allowScroll, 'bg-dialog-tabs': allowTabs }"
+				[style.padding]="headerPadding"
+				(tabScroll)="tabScrollEvent($event)"
+				(mouseenter)="onMouseEnter()"
+				(mouseleave)="onMouseLeave()"
+			>
+				<ng-template ngFor let-item let-i="index" [ngForOf]="tabs">
+					<div
+						class="go5-tab-header"
+						tabHeader
+						(mouseEvent)="changePressIndex($event, i)"
+						[ngClass]="{
+							'go5-tab-header-active': activeIndex === i || (indexPress === i && !isDisabled(i)),
+							'go5-tab-header-disabled': isDisabled(i),
+						}"
+						(click)="changeTab(i)"
+					>
+						<ng-container *ngIf="category === TabCategories.Secondary">
+							<go5-avatar
+								*ngIf="item.imgSrc"
+								class="img-logo"
+								[src]="item.imgSrc"
+								alt="'tab-lobo'"
+								[width]="'20px'"
+								type="picUser"
+								[size]="avatarSizeCustom"
+							/>
+						</ng-container>
+						<div
+							class="go5-header-text"
+							[ngClass]="{
+								'bg-transparent-theme-light': themeLight,
+								'go5-tab-header-text-small': smallType === headerTextSize,
+								'go5-tab-header-text': mediumType === headerTextSize,
+							}"
+						>
+							<ng-container
+								[ngTemplateOutlet]="item.headerTemplate ? item.headerTemplate : defaultHeaderTemplate"
+								[ngTemplateOutletContext]="{ $implicit: item }"
+							></ng-container>
+						</div>
+						<div *ngIf="item.badge" class="go5-tab-header-badge">
+							<span>
+								{{ formatBadgeLabel(item.badge) }}
+							</span>
+						</div>
+						<ng-container *ngIf="category === TabCategories.Secondary && allowTabs">
+							<div class="go5-tab-header-remove" (click)="onRemoveTab($event, i)">
+								<i class="go5-tab-item-close go5-color-primary gf-icon-close-mini"></i>
+							</div>
+						</ng-container>
+					</div>
+				</ng-template>
+			</div>
+		</div>
+
+		<div
+			*ngIf="allowScroll && overFlowTab.length && isShowDropdown && tabs && tabs.length > 1"
+			[class]="'go5-tab-icon-container' + (allowTabs || themeLight ? ' bg-transparent' : '')"
+			[style.padding]="headerPadding"
+			id="go5-tab-icon-container"
+		>
+			<go5-dropdown-selection
+				#dropdownOverFlowTab
+				[dataSource]="overFlowTab"
+				[mode]="DropdownSelectMode.Button"
+				[allowFiltering]="false"
+				(selected)="selectTab($event)"
+				[fields]="fieldsTab"
+			>
+				<ng-template #toggleTemplate>
+					<em
+						[class]="'go5-tab-icon gf-icon-down' + (themeLight ? ' bg-transparent' : '')"
+						[ngClass]="{ 'go5-tab-icon-opening': dropdownOverFlowTab.isOpen }"
+					>
+					</em>
+				</ng-template>
+			</go5-dropdown-selection>
+		</div>
+
+		<div *ngIf="headerRightTemplate" class="go5-tab-header-right-wrapper" [style.min-width.px]="headerRightMinWidth">
+			<div class="go5-tab-header-right">
+				<ng-container [ngTemplateOutlet]="headerRightTemplate"> </ng-container>
+			</div>
+		</div>
+	</div>
+	<div *ngIf="isShowBorder" class="go5-tab-content-border"></div>
+	<div
+		#contentElement
+		id="go5-tab-content-wrapper"
+		class="go5-tab-content-wrapper"
+		[ngClass]="{ 'go5-tab-content-auto-height': autoHeight, 'go5-dialog-tabs': allowTabs }"
+		[style.padding]="contentPadding"
+		[style.max-height]="autoHeight ? contentHeight : ''"
+		[style.height]="autoHeight ? contentHeight : ''"
+		*ngIf="tab"
+		[hidden]="!((autoHeight && contentHeight) || !autoHeight)"
+	>
+		<ng-container
+			[ngTemplateOutlet]="tab.contentTemplate ? tab.contentTemplate : defaultContentTemplate"
+			[ngTemplateOutletContext]="{ $implicit: tab }"
+		>
+		</ng-container>
+		<ng-content select="[sidebarRightContent]" />
+	</div>
+</div>
+
+<ng-template #defaultHeaderTemplate let-item>
+	<p
+		#paragraphRef
+		class="go5-tab-header-text-content"
+		[innerHTML]="item.headerText"
+		[attr.data-testid]="item.testId ? prefixTestId + item.testId : null"
+		[go5-tooltip]="paragraphRef.scrollWidth > paragraphRef.offsetWidth ? item.headerText : ''"
+	></p>
+</ng-template>
+
+<ng-template #defaultContentTemplate let-item>
+	<div class="go5-tab-content" [innerHTML]="item.content"></div>
+</ng-template>
